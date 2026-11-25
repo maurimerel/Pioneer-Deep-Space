@@ -64,6 +64,7 @@ function PiGuiFace.New (character, style, drawButtons)
 		portraitKey = nil,
 		character = character,
 		drawButtons = drawButtons,
+		v5Preview = true,
 		style = {
 			size = style.size or nil,
 			itemSpacing = style.itemSpacing or ui.rescaleUI(Vector2(6, 12), Vector2(1600, 900)),
@@ -167,13 +168,23 @@ local inputTextPadding = ui.rescaleUI(Vector2(18, 18))
 function PiGuiFace:renderFaceGenButtons(can_random)
 	local char = self.character
 	ui.withStyleVars({ItemSpacing = facegenSpacing}, function()
-		local numFeatures = #faceFeatures
+		local photo = self.v5Preview
+		local numFeatures = photo and 3 or #faceFeatures
 		if can_random then numFeatures = numFeatures + 1 end
+		numFeatures = numFeatures + 1
 		facegenSize.y = (buttonSize.y + facegenSpacing.y) * numFeatures - facegenSpacing.y
 		ui.child("FaceGen", facegenSize, nil, {'AlwaysAutoResize','AutoResizeX','AutoResizeY'}, function()
-			for _, v in ipairs(faceFeatures) do
-				faceGenButton(self, v)
-			end
+			if ui.button(photo and "Deep Space" or "Classic") then
+                self.v5Preview = not photo
+            end
+            for _, v in ipairs(faceFeatures) do
+                if not photo or v.id == 'FEATURE_GENDER' or v.id == 'FEATURE_CLOTHES'
+                    or v.id == 'FEATURE_HAIRSTYLE' then
+                    if not photo or v.id ~= 'FEATURE_HAIRSTYLE' or char.faceDescription.FEATURE_GENDER % 2 == 1 then
+                        faceGenButton(self, v)
+                    end
+                end
+            end
 
 			local icon_size = ui.theme.styles.MainButtonSize
 			local size = Vector2(icon_size.x * 3 + facegenSpacing.x * 2, icon_size.y)
@@ -244,7 +255,7 @@ function PiGuiFace:renderFaceDisplay ()
 		self.portraitKey = key
 		self.deepSpacePortrait = key and DeepSpacePortraits.New(char) or nil
 	end
-	if not (self.drawButtons and drawV5Preview(char, size)) and not DeepSpacePortraits.Draw(self.deepSpacePortrait, size) then
+	if not (self.drawButtons and self.v5Preview and drawV5Preview(char, size)) and not DeepSpacePortraits.Draw(self.deepSpacePortrait, size) then
 		ui.image(self.faceGen.textureId, Vector2(size), Vector2(0.0, 0.0), self.faceGen.textureSize, colors.white)
 	end
 
