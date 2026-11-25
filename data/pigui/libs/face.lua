@@ -5,6 +5,7 @@ local Engine = require 'Engine'
 local Rand = require 'Rand'
 local FaceTextureGenerator = require 'PiGui.Modules.Face'
 local Character = require 'Character'
+local DeepSpacePortraits = require 'pigui.libs.deep-space-portraits'
 
 local l = require 'Lang'.GetResource("ui-core")
 local ui = require 'pigui'
@@ -59,6 +60,7 @@ function PiGuiFace.New (character, style, drawButtons)
 	local faceTexGen = FaceTextureGenerator.New(character.faceDescription, character.seed)
 	local piguiFace = {
 		faceGen = faceTexGen,
+		deepSpacePortrait = not drawButtons and DeepSpacePortraits.New(character) or nil,
 		character = character,
 		drawButtons = drawButtons,
 		style = {
@@ -206,7 +208,9 @@ function PiGuiFace:renderFaceDisplay ()
 	local region = self.style.size or ui.getContentRegion()
 	local size = math.min(region.x, region.y)
 
-	ui.image(self.faceGen.textureId, Vector2(size), Vector2(0.0, 0.0), self.faceGen.textureSize, colors.white)
+	if not DeepSpacePortraits.Draw(self.deepSpacePortrait, size) then
+		ui.image(self.faceGen.textureId, Vector2(size), Vector2(0.0, 0.0), self.faceGen.textureSize, colors.white)
+	end
 
 	if(self.style.showCharInfo) then
 
