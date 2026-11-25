@@ -2,7 +2,10 @@
 local Image = require 'pigui.libs.image'
 local Vector2 = _G.Vector2
 local Portraits = {}
-local catalog = {} -- Append only after assets are installed and validated.
+local catalog = {
+    { id = 'operator_001', female = true, armour = false,
+      neutral = 'deep-space/portraits/operator_001/neutral.png' },
+} -- Initial static portrait prototype.
 local cache = setmetatable({}, { __mode = 'v' })
 
 local function hash(seed)
