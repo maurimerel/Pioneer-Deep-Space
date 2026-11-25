@@ -1,0 +1,29 @@
+name: Deep Space baseline
+on:
+  workflow_dispatch:
+  push:
+    branches: [develop]
+    paths: ['.github/workflows/deep-space-baseline.yml']
+permissions:
+  contents: read
+concurrency:
+  group: deep-space-baseline-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Dependencies
+        run: sudo apt-get update && sudo apt-get install -y ninja-build libgl-dev libopengl-dev mesa-common-dev libfreeimage-dev libglew-dev libfreetype6-dev libsigc++-2.0-dev libvorbis-dev libassimp-dev libsdl2-dev libsdl2-image-dev libopenal-dev
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DUSE_SSE42=OFF -DPROJECT_VERSION_INFO=DeepSpace-baseline
+      - name: Build
+        run: cmake --build build --target pioneer unittest --parallel 2
+      - name: Unit tests
+        run: ./build/unittest
+      - name: Record binary
+        run: sha256sum build/pioneer
