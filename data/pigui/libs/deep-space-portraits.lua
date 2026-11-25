@@ -39,10 +39,8 @@ end
 
 function Portraits.Draw(portrait, size)
     if not portrait then return false end
-    local t = os.clock() + portrait.phase
-    local frame = portrait.images.neutral
-    if portrait.images.blink and t % 5.3 < 0.13 then frame = portrait.images.blink end
-    frame:Draw(Vector2(size))
+    -- Static prototype: Pioneer Lua does not expose the os library.
+    portrait.images.neutral:Draw(Vector2(size))
     return true
 end
 
