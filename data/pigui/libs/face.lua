@@ -60,7 +60,8 @@ function PiGuiFace.New (character, style, drawButtons)
 	local faceTexGen = FaceTextureGenerator.New(character.faceDescription, character.seed)
 	local piguiFace = {
 		faceGen = faceTexGen,
-		deepSpacePortrait = not drawButtons and DeepSpacePortraits.New(character) or nil,
+		deepSpacePortrait = nil,
+		portraitKey = nil,
 		character = character,
 		drawButtons = drawButtons,
 		style = {
@@ -208,6 +209,19 @@ function PiGuiFace:renderFaceDisplay ()
 	local region = self.style.size or ui.getContentRegion()
 	local size = math.min(region.x, region.y)
 
+	-- Never override the player's customized face or an editable preview.
+	local char = self.character
+	local isPlayer = char.player == true or char == Character.persistent.player
+	local desc = char.faceDescription
+	local compatible = desc and type(desc.FEATURE_GENDER) == "number"
+		and type(char.female) == "boolean"
+		and (desc.FEATURE_GENDER % 2 == 1) == char.female
+	local key = not self.drawButtons and not isPlayer and compatible
+		and (tostring(char.seed) .. ":" .. tostring(char.female) .. ":" .. tostring(char.armour)) or false
+	if self.portraitKey ~= key then
+		self.portraitKey = key
+		self.deepSpacePortrait = key and DeepSpacePortraits.New(char) or nil
+	end
 	if not DeepSpacePortraits.Draw(self.deepSpacePortrait, size) then
 		ui.image(self.faceGen.textureId, Vector2(size), Vector2(0.0, 0.0), self.faceGen.textureSize, colors.white)
 	end
