@@ -5,7 +5,15 @@ local Portraits = {}
 local catalog = {
     { id = 'operator_001', female = true, armour = false,
       neutral = 'deep-space/portraits/operator_001/neutral.png' },
-} -- Initial static portrait prototype.
+    { id = 'commander_003', female = false, armour = false,
+      neutral = 'deep-space/portraits/commander_003/neutral.png' },
+    { id = 'explorer_004', female = true, armour = false,
+      neutral = 'deep-space/portraits/explorer_004/neutral.png' },
+    { id = 'pilot_005', female = true, armour = false,
+      neutral = 'deep-space/portraits/pilot_005/neutral.png' },
+    { id = 'engineer_006', female = false, armour = false,
+      neutral = 'deep-space/portraits/engineer_006/neutral.png' },
+} -- Static portrait pack 01.
 local cache = setmetatable({}, { __mode = 'v' })
 
 local function hash(seed)
