@@ -88,6 +88,28 @@ function PiGuiFace.New (character, style, drawButtons)
 	return piguiFace
 end
 
+-- Temporary V5 editor preview; does not change saved character data.
+local previewCache = {}
+local function drawV5Preview(char, size)
+    local d = char.faceDescription
+    if not d or type(d.FEATURE_GENDER) ~= "number" then return false end
+    local female = d.FEATURE_GENDER % 2 == 1
+    local hair = (d.FEATURE_HAIRSTYLE or 0) % 3 + 1
+    local uniform = (d.FEATURE_CLOTHES or 0) % 3 + 1
+    local name = female and ("female_hair_" .. hair .. "_uniform_" .. uniform)
+        or ("male_uniform_" .. uniform)
+    if not previewCache[name] then
+        local ok, img = pcall(function()
+            return require('pigui.libs.image').New('deep-space/facegen/v5/' .. name .. '.png')
+        end)
+        if not ok then print("DS_V5_LOAD_ERROR " .. tostring(img)); return false end
+        previewCache[name] = img
+        print("DS_V5_PREVIEW " .. name)
+    end
+    previewCache[name]:Draw(Vector2(size))
+    return true
+end
+
 local faceFeatures = {
 	{id = 'FEATURE_SPECIES', icon = icons.sun, tooltip = l.FEATURE_SPECIES},
 	{id = 'FEATURE_RACE', icon = icons.planet_grid, tooltip = l.FEATURE_RACE},
@@ -222,7 +244,7 @@ function PiGuiFace:renderFaceDisplay ()
 		self.portraitKey = key
 		self.deepSpacePortrait = key and DeepSpacePortraits.New(char) or nil
 	end
-	if not DeepSpacePortraits.Draw(self.deepSpacePortrait, size) then
+	if not (self.drawButtons and drawV5Preview(char, size)) and not DeepSpacePortraits.Draw(self.deepSpacePortrait, size) then
 		ui.image(self.faceGen.textureId, Vector2(size), Vector2(0.0, 0.0), self.faceGen.textureSize, colors.white)
 	end
 
