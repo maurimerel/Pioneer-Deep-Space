@@ -27,6 +27,16 @@ for uniform = 1, 3 do
     catalog[#catalog + 1] = { id = id, female = false, armour = false, neutral = imagePath(id) }
 end
 
+local players, npcs = {}, {}
+for _, entry in ipairs(catalog) do
+    local npc = entry.id == 'operator_001' or entry.id == 'engineer_006' or entry.id == 'commander_003'
+    local group = npc and npcs or players
+    group[#group+1] = entry
+end
+local function pool(character, editing)
+    return (editing or character.player) and players or npcs
+end
+
 local cache = setmetatable({}, { __mode = 'v' })
 
 local function hash(seed)
@@ -36,9 +46,10 @@ local function hash(seed)
     return h
 end
 
-function Portraits.Count() return #catalog end
+function Portraits.Count() return #players end
 
-function Portraits.Index(character)
+function Portraits.Index(character, editing)
+    local catalog = pool(character, editing)
     for i, entry in ipairs(catalog) do
         if entry.id == character.deepSpacePortraitId then return i end
     end
@@ -46,10 +57,12 @@ function Portraits.Index(character)
     for i, entry in ipairs(catalog) do
         if entry.female == not not character.female then matches[#matches+1] = i end
     end
+    if #matches == 0 then return hash(character.seed) % #catalog + 1 end
     return matches[hash(character.seed) % #matches + 1]
 end
 
 function Portraits.Select(character, index)
+    local catalog = players
     local entry = catalog[(index - 1) % #catalog + 1]
     character.deepSpacePortraitId = entry.id
     character.female = entry.female
@@ -58,8 +71,9 @@ function Portraits.Select(character, index)
     end
 end
 
-function Portraits.New(character)
-    local entry = catalog[Portraits.Index(character)]
+function Portraits.New(character, editing)
+    local catalog = pool(character, editing)
+    local entry = catalog[Portraits.Index(character, editing)]
     local images = cache[entry.id]
     if not images then
         local ok, result = pcall(function()
