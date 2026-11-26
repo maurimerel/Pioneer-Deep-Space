@@ -99,7 +99,7 @@ local inputTextPadding = ui.rescaleUI(Vector2(18, 18))
 function PiGuiFace:renderFaceGenButtons(can_random)
     local char = self.character
     ui.child("FaceGen", facegenSize, nil, {'AlwaysAutoResize','AutoResizeX','AutoResizeY'}, function()
-        local index = DeepSpacePortraits.Index(char)
+        local index = DeepSpacePortraits.Index(char, self.drawButtons)
         if ui.iconButton("PreviousPortrait", icons.decrease_1, nil, nil, iconSize) then
             DeepSpacePortraits.Select(char, index - 1)
         end
@@ -107,14 +107,14 @@ function PiGuiFace:renderFaceGenButtons(can_random)
         if ui.iconButton("NextPortrait", icons.increase_1, nil, nil, iconSize) then
             DeepSpacePortraits.Select(char, index + 1)
         end
-        ui.text(string.format("%d / %d", DeepSpacePortraits.Index(char), DeepSpacePortraits.Count()))
+        ui.text(string.format("%d / %d", DeepSpacePortraits.Index(char, self.drawButtons), DeepSpacePortraits.Count()))
     end)
 end
 
 function PiGuiFace:render()
 	local char = self.character
 	if self.drawButtons and not char.deepSpacePortraitId then
-		DeepSpacePortraits.Select(char, DeepSpacePortraits.Index(char))
+		DeepSpacePortraits.Select(char, DeepSpacePortraits.Index(char, self.drawButtons))
 	end
 	if not self.drawButtons then
 		self:renderFaceDisplay()
@@ -160,10 +160,10 @@ function PiGuiFace:renderFaceDisplay ()
 	local size = math.min(region.x, region.y)
 
 	local char = self.character
-	local key = DeepSpacePortraits.Index(char)
+	local key = DeepSpacePortraits.Index(char, self.drawButtons)
 	if self.portraitKey ~= key then
 		self.portraitKey = key
-		self.deepSpacePortrait = key and DeepSpacePortraits.New(char) or nil
+		self.deepSpacePortrait = key and DeepSpacePortraits.New(char, self.drawButtons) or nil
 	end
 	if not DeepSpacePortraits.Draw(self.deepSpacePortrait, size) then
 		ui.image(self.faceGen.textureId, Vector2(size), Vector2(0.0, 0.0), self.faceGen.textureSize, colors.white)
