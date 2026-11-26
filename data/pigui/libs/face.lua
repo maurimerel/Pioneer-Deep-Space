@@ -88,84 +88,34 @@ function PiGuiFace.New (character, style, drawButtons)
 	return piguiFace
 end
 
-local faceFeatures = {
-	{id = 'FEATURE_SPECIES', icon = icons.sun, tooltip = l.FEATURE_SPECIES},
-	{id = 'FEATURE_RACE', icon = icons.planet_grid, tooltip = l.FEATURE_RACE},
-	{id = 'FEATURE_GENDER', icon = icons.gender, tooltip = l.FEATURE_GENDER, callback = function(char, value)
-		char.female = (value % 2 == 1)
-	end},
-	{id = 'FEATURE_HEAD', icon = icons.personal, tooltip = l.FEATURE_HEAD},
-	{id = 'FEATURE_EYES', icon = icons.view_internal, tooltip = l.FEATURE_EYES},
-	{id = 'FEATURE_NOSE', icon = icons.nose, tooltip = l.FEATURE_NOSE},
-	{id = 'FEATURE_MOUTH', icon = icons.mouth, tooltip = l.FEATURE_MOUTH},
-	{id = 'FEATURE_HAIRSTYLE', icon = icons.hair, tooltip = l.FEATURE_HAIRSTYLE},
-	{id = 'FEATURE_ACCESSORIES', icon = icons.accessories, tooltip = l.FEATURE_ACCESSORIES},
-	{id = 'FEATURE_CLOTHES', icon = icons.clothes, tooltip = l.FEATURE_CLOTHES},
-}
-
-function PiGuiFace:changeFeature(featureId, amt, callback)
-	local char = self.character
-
-	char.faceDescription[featureId] = (char.faceDescription[featureId] + amt) % 2^31
-	if callback then callback(char, char.faceDescription[featureId]) end
-	self.faceGen = FaceTextureGenerator.New(char.faceDescription, char.seed)
-end
-
 local font = ui.fonts.pionillium.medium
 local iconSize = ui.theme.styles.MainButtonSize
 local buttonSize = iconSize
 
-local function faceGenButton(self, feature)
-	local bg_variant = ui.theme.buttonColors.transparent
-	local icon_size = ui.theme.styles.MainButtonSize
-
-	ui.withStyleColors({ Text = colors.fontDark }, function()
-		ui.withID(feature.id, function()
-			if ui.iconButton("<<", ui.theme.icons.decrease_1, nil, bg_variant, icon_size) then
-				self:changeFeature(feature.id, -1, feature.callback)
-			end
-
-			ui.sameLine()
-
-			ui.icon(feature.icon, icon_size, colors.white)
-
-			ui.sameLine()
-
-			if ui.iconButton(">>", ui.theme.icons.increase_1, nil, bg_variant, icon_size) then
-				self:changeFeature(feature.id, 1, feature.callback)
-			end
-		end)
-	end)
-end
-
 local facegenSpacing = Vector2(font.size * 0.3, font.size * 0.3)
-local facegenSize = Vector2(buttonSize.x * 2 + iconSize.x + facegenSpacing.x * 2, (buttonSize.y + facegenSpacing.y) * (#faceFeatures + 1) - facegenSpacing.y)
+local facegenSize = Vector2(buttonSize.x * 2 + iconSize.x + facegenSpacing.x * 2, (buttonSize.y + facegenSpacing.y) * 2 - facegenSpacing.y)
 local inputTextPadding = ui.rescaleUI(Vector2(18, 18))
 
 function PiGuiFace:renderFaceGenButtons(can_random)
-	local char = self.character
-	ui.withStyleVars({ItemSpacing = facegenSpacing}, function()
-		local numFeatures = #faceFeatures
-		if can_random then numFeatures = numFeatures + 1 end
-		facegenSize.y = (buttonSize.y + facegenSpacing.y) * numFeatures - facegenSpacing.y
-		ui.child("FaceGen", facegenSize, nil, {'AlwaysAutoResize','AutoResizeX','AutoResizeY'}, function()
-			for _, v in ipairs(faceFeatures) do
-				faceGenButton(self, v)
-			end
-
-			local icon_size = ui.theme.styles.MainButtonSize
-			local size = Vector2(icon_size.x * 3 + facegenSpacing.x * 2, icon_size.y)
-
-			if can_random and ui.iconButton("Randomize", icons.random, l.RANDOM_FACE, nil, size) then
-				char.faceDescription = rerollFaceDesc(char.faceDescription)
-				self.faceGen = FaceTextureGenerator.New(char.faceDescription, char.seed)
-			end
-		end)
-	end)
+    local char = self.character
+    ui.child("FaceGen", facegenSize, nil, {'AlwaysAutoResize','AutoResizeX','AutoResizeY'}, function()
+        local index = DeepSpacePortraits.Index(char)
+        if ui.iconButton("PreviousPortrait", icons.decrease_1, nil, nil, iconSize) then
+            DeepSpacePortraits.Select(char, index - 1)
+        end
+        ui.sameLine()
+        if ui.iconButton("NextPortrait", icons.increase_1, nil, nil, iconSize) then
+            DeepSpacePortraits.Select(char, index + 1)
+        end
+        ui.text(string.format("%d / %d", DeepSpacePortraits.Index(char), DeepSpacePortraits.Count()))
+    end)
 end
 
 function PiGuiFace:render()
 	local char = self.character
+	if self.drawButtons and not char.deepSpacePortraitId then
+		DeepSpacePortraits.Select(char, DeepSpacePortraits.Index(char))
+	end
 	if not self.drawButtons then
 		self:renderFaceDisplay()
 		return
@@ -209,15 +159,8 @@ function PiGuiFace:renderFaceDisplay ()
 	local region = self.style.size or ui.getContentRegion()
 	local size = math.min(region.x, region.y)
 
-	-- Never override the player's customized face or an editable preview.
 	local char = self.character
-	local isPlayer = char.player == true or char == Character.persistent.player
-	local desc = char.faceDescription
-	local compatible = desc and type(desc.FEATURE_GENDER) == "number"
-		and type(char.female) == "boolean"
-		and (desc.FEATURE_GENDER % 2 == 1) == char.female
-	local key = not self.drawButtons and not isPlayer and compatible
-		and (tostring(char.seed) .. ":" .. tostring(char.female) .. ":" .. tostring(char.armour)) or false
+	local key = DeepSpacePortraits.Index(char)
 	if self.portraitKey ~= key then
 		self.portraitKey = key
 		self.deepSpacePortrait = key and DeepSpacePortraits.New(char) or nil
