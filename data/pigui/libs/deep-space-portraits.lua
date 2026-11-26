@@ -36,23 +36,30 @@ local function hash(seed)
     return h
 end
 
-function Portraits.New(character)
-    -- Keep Pioneer original faces for player customization, armour and ambiguous gender.
-    if type(character.female) ~= 'boolean' or character.armour then return nil end
-    local desc = character.faceDescription
-    if desc and type(desc.FEATURE_GENDER) == 'number'
-        and (desc.FEATURE_GENDER % 2 == 1) ~= character.female then
-        return nil
+function Portraits.Count() return #catalog end
+
+function Portraits.Index(character)
+    for i, entry in ipairs(catalog) do
+        if entry.id == character.deepSpacePortraitId then return i end
     end
     local matches = {}
-    for _, entry in ipairs(catalog) do
-        if entry.female == character.female and entry.armour == false then
-            matches[#matches + 1] = entry
-        end
+    for i, entry in ipairs(catalog) do
+        if entry.female == not not character.female then matches[#matches+1] = i end
     end
-    if #matches == 0 then return nil end
-    local h = hash(character.seed)
-    local entry = matches[h % #matches + 1]
+    return matches[hash(character.seed) % #matches + 1]
+end
+
+function Portraits.Select(character, index)
+    local entry = catalog[(index - 1) % #catalog + 1]
+    character.deepSpacePortraitId = entry.id
+    character.female = entry.female
+    if character.faceDescription then
+        character.faceDescription.FEATURE_GENDER = entry.female and 1 or 0
+    end
+end
+
+function Portraits.New(character)
+    local entry = catalog[Portraits.Index(character)]
     local images = cache[entry.id]
     if not images then
         local ok, result = pcall(function()
