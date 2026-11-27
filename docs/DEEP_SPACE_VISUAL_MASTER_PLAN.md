@@ -26,3 +26,6 @@ Native layered editor restored (6085e4553bbc5397e2bab1deb19fd894a53c787e). Offli
 
 ## Checkpoint — 2026-11-27
 Local Linux Release O2 startup verified by user and build log (372/372 tasks, 11.08 s reported). AMD Vega 3, Mesa 25.2.8, OpenGL 4.6 hardware rendering. Build directory `build-release-o2`; configure Release with `-DCMAKE_C_FLAGS_RELEASE="-O2 -g -DNDEBUG" -DCMAKE_CXX_FLAGS_RELEASE="-O2 -g -DNDEBUG" -DUSE_SSE42=OFF`. O3 crashes during DDS upload; O2 is a workaround, not a root-cause fix. Clean shutdown and extended gameplay remain unverified. Local asset packs and source changes must be reconciled before editing the same files remotely. Next: inventory current terrain shaders and materials, improve orbit-to-surface transitions, preserve building textures and measure VRAM/FPS before increasing resolution.
+
+## Asset storage policy
+User explicitly requests keeping remastered binary assets outside GitHub. Retain upstream tracked assets; do not stage modified textures, portraits, models or asset packs. GitHub stores source, scripts, manifests and documentation only for new work. User confirms local backup completed. Preserve local modifications; never reset or clean the working tree. Planetary V3 must be applied against current local shaders, not blindly against upstream versions.
