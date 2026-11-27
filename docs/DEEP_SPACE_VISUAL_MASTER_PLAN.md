@@ -23,3 +23,6 @@ Inventory original assets; use each as geometry/UV/alpha reference; generate imp
 
 ## Current checkpoint
 Native layered editor restored (6085e4553bbc5397e2bab1deb19fd894a53c787e). Offline compositor added (bcf13377867e2bc2021ac1f18355aeecdd73a805), not yet validated locally. User confirmed prototype layers appear in game, but female jaw clipping remains. Next: inspect original head variants, diagnose clipping, calibrate replacement heads, then other facial parts. Full visual remaster not yet implemented.
+
+## Checkpoint — 2026-11-27
+Local Linux Release O2 startup verified by user and build log (372/372 tasks, 11.08 s reported). AMD Vega 3, Mesa 25.2.8, OpenGL 4.6 hardware rendering. Build directory `build-release-o2`; configure Release with `-DCMAKE_C_FLAGS_RELEASE="-O2 -g -DNDEBUG" -DCMAKE_CXX_FLAGS_RELEASE="-O2 -g -DNDEBUG" -DUSE_SSE42=OFF`. O3 crashes during DDS upload; O2 is a workaround, not a root-cause fix. Clean shutdown and extended gameplay remain unverified. Local asset packs and source changes must be reconciled before editing the same files remotely. Next: inventory current terrain shaders and materials, improve orbit-to-surface transitions, preserve building textures and measure VRAM/FPS before increasing resolution.
